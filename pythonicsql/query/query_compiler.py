@@ -1,12 +1,11 @@
 from collections import defaultdict
-from dataclasses import fields
 from itertools import groupby
 from typing import List
 
 from databases import Database
-from pythonicsql.query.simple_attributes import SimpleAttributes
 
-from pythonicsql.query.statement import Statements
+from pythonicsql.query.model.simple_attributes import SimpleAttributes
+from pythonicsql.query.model.statement import Statements
 
 
 class QueryCompiler:
@@ -17,7 +16,7 @@ class QueryCompiler:
     components: List[str] = [
         "columns",
         # "join",
-        # "where",
+        "where",
         # "union",
         # "group",
         # "having",
@@ -52,17 +51,38 @@ class QueryCompiler:
         columns = self.groups_dict["columns"]
         table_name = self._simple.table_name
         sql_ = "select {fields} from {table_name}"
-        if len(columns) == 0:
-            sql_ = sql_.format(fields="*", table_name=table_name)
-        else:
-            sql_ = sql_.format(fields=columns[0].value, table_name=table_name)
-        return sql_
+        return (
+            sql_.format(fields="*", table_name=table_name)
+            if len(columns) == 0
+            else sql_.format(fields=columns[0].value, table_name=table_name)
+        )
+
+    def where(self):
+        sql = []
+        wheres = self.groups_dict["where"]
+        for clausare_where in wheres:
+            stmt = self[clausare_where.type](clausare_where)
+            if not sql:
+                sql.append(stmt)
+            else:
+                sql.extend((clausare_where.condition, stmt))
+        return "where" + "".join(sql)
+
+    def where_in(self, statement: Statements):
+        values = ", ".join(f"'{v}'" for v in statement.value)
+        return " {column} in ({values})".format(column=statement.column, values=values)
+
+    def where_like(self, statement: Statements):
+        return " {column} like '{value}'".format(
+            column=statement.column, value=statement.value
+        )
 
     def limit(self):
-        sql = ""
-        if self._simple.limit and self._simple.limit > 0:
-            sql = " limit {}".format(self._simple.limit)
-        return sql
+        return (
+            f"limit {self._simple.limit}"
+            if self._simple.limit and self._simple.limit > 0
+            else ""
+        )
 
     def set_options_builder(
         self, statements: List[Statements], simple: SimpleAttributes
@@ -71,15 +91,16 @@ class QueryCompiler:
         self._simple = simple
 
     async def exec(self):
-        result = None
         query = self.to_sql()
-        print(query)
-        if self._simple.is_dql:
-            result = await self.client.fetch_all(query=query)
-        else:
-            result = await self.client.execute(query=query)
+        self.reset()
+        return (
+            await self.client.fetch_all(query=query)
+            if self._simple.is_dql
+            else await self.client.execute(query=query)
+        )
 
-        return result
+    def reset(self):
+        self.groups_dict = defaultdict(list)
 
     def __getitem__(self, key):
         return getattr(self, key)

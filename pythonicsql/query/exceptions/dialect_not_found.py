@@ -1,0 +1,2 @@
+class DialectNotFound(Exception):
+    pass

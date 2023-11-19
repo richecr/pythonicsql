@@ -7,3 +7,5 @@ class Statements(BaseModel):
     type: str
     value: Any
     grouping: str
+    column: str = ""
+    condition: str = " and"

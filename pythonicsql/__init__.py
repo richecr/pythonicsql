@@ -1,5 +1,7 @@
 from pythonicsql.dialects.postgres import PostgresSQL
+
 from pythonicsql.query.query_builder import QueryBuilder
+from pythonicsql.query.exceptions.dialect_not_found import DialectNotFound
 
 
 class PythonicSQL:
@@ -14,4 +16,4 @@ class PythonicSQL:
         if self.dialect == "pg":
             return PostgresSQL(self.dialect, self.uri).builder
 
-        raise Exception("Dialect not found")
+        raise DialectNotFound("Dialect not found")

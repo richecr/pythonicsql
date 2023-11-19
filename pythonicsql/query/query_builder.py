@@ -1,7 +1,7 @@
-from typing import List
+from typing import Any, List
 from pythonicsql.query.query_compiler import QueryCompiler
-from pythonicsql.query.simple_attributes import SimpleAttributes
-from pythonicsql.query.statement import Statements
+from pythonicsql.query.model.simple_attributes import SimpleAttributes
+from pythonicsql.query.model.statement import Statements
 
 
 class QueryBuilder:
@@ -20,8 +20,8 @@ class QueryBuilder:
         self._statements.append(
             Statements(
                 type="select",
-                value=", ".join(columns),
                 grouping="columns",
+                value=", ".join(columns),
             )
         )
         return self
@@ -36,10 +36,45 @@ class QueryBuilder:
     def into(self, tn: str):
         return self.set_table_name(tn)
 
+    def _where(
+        self, type: str, column: str, value: List | str, condition: str = " and"
+    ):
+        self._statements.append(
+            Statements(
+                type=type,
+                grouping="where",
+                value=value,
+                column=column,
+                condition=condition,
+            )
+        )
+
+    def where_in(self, column: str, values: List):
+        self._where("where_in", column, values)
+        return self
+
+    def or_where_in(self, column: str, values: List):
+        self._where("where_in", column, values, " or")
+        return self
+
+    def where_like(self, column: str, value: str):
+        self._where("where_like", column, value)
+        return self
+
+    def or_where_like(self, column: str, value: str):
+        self._where("where_like", column, value, " or")
+        return self
+
     def limit(self, limit_: int):
         self._simple.limit = limit_
         return self
 
     async def exec(self):
         self.compiler.set_options_builder(self._statements, self._simple)
-        return await self.compiler.exec()
+        result = await self.compiler.exec()
+        self.reset()
+        return result
+
+    def reset(self):
+        self._statements = []
+        self._simple = SimpleAttributes()
