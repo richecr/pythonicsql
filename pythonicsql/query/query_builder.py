@@ -37,7 +37,12 @@ class QueryBuilder:
         return self.set_table_name(tn)
 
     def _where(
-        self, type: str, column: str, value: List | str, condition: str = " and"
+        self,
+        type: str,
+        column: str,
+        value: List | str | int | Any,
+        condition: str = " and",
+        operator: str = " = ",
     ):
         self._statements.append(
             Statements(
@@ -46,8 +51,25 @@ class QueryBuilder:
                 value=value,
                 column=column,
                 condition=condition,
+                operator=operator,
             )
         )
+
+    def where(self, column: str, value: Any, operator: str = "="):
+        self._where(
+            type="where_operator", column=column, value=value, operator=operator
+        )
+        return self
+
+    def or_where(self, column: str, value: Any, operator: str = "="):
+        self._where(
+            type="where_operator",
+            column=column,
+            value=value,
+            operator=operator,
+            condition=" or",
+        )
+        return self
 
     def where_in(self, column: str, values: List):
         self._where("where_in", column, values)

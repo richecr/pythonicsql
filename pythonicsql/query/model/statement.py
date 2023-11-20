@@ -9,3 +9,4 @@ class Statements(BaseModel):
     grouping: str
     column: str = ""
     condition: str = " and"
+    operator: str = "="

@@ -32,11 +32,13 @@ class QueryCompiler:
     def to_sql(self):
         first_statements = []
         end_statements = []
-        groups = groupby(self._statements, lambda x: x.grouping)
-        for key, g in groups:
-            self.groups_dict[key].extend(list(g))
+
+        self.groups_dict = {
+            key: list(group)
+            for key, group in groupby(self._statements, lambda x: x.grouping)
+        }
         for component in self.components:
-            statement = self[component]()
+            statement = getattr(self, component, lambda: None)()
             match component:
                 case "union":
                     pass
@@ -68,6 +70,11 @@ class QueryCompiler:
                 sql.extend((clausare_where.condition, stmt))
         return "where" + "".join(sql)
 
+    def where_operator(self, statement: Statements):
+        return " {column} {operator} '{values}'".format(
+            column=statement.column, operator=statement.operator, values=statement.value
+        )
+
     def where_in(self, statement: Statements):
         values = ", ".join(f"'{v}'" for v in statement.value)
         return " {column} in ({values})".format(column=statement.column, values=values)
@@ -92,6 +99,8 @@ class QueryCompiler:
 
     async def exec(self):
         query = self.to_sql()
+        # TODO: Remove
+        print(query)
         self.reset()
         return (
             await self.client.fetch_all(query=query)
