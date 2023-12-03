@@ -17,12 +17,12 @@ class QueryCompiler:
         "columns",
         # "join",
         "where",
-        # "union",
+        "union",
         # "group",
         # "having",
         # "order",
         "limit",
-        # "offset",
+        "offset",
     ]
 
     def __init__(self, client: Database) -> None:
@@ -38,37 +38,33 @@ class QueryCompiler:
             for key, group in groupby(self._statements, lambda x: x.grouping)
         }
         for component in self.components:
-            statement = getattr(self, component, lambda: None)()
-            match component:
-                case "union":
-                    pass
-                case "comments" | "columns" | "join" | "where" | "limit":
-                    first_statements.append(statement)
-                case _:
-                    end_statements.append(statement)
-        return " ".join(first_statements)
+            if statement := getattr(self, component, lambda: None)():
+                match component:
+                    case "comments" | "columns" | "join" | "where" | "limit":
+                        first_statements.append(statement)
+                    case _:
+                        end_statements.append(statement)
+        return " ".join(first_statements + end_statements)
 
     def columns(self):
         self._simple.is_dql = True
-        columns = self.groups_dict["columns"]
-        table_name = self._simple.table_name
-        sql_ = "select {fields} from {table_name}"
-        return (
-            sql_.format(fields="*", table_name=table_name)
-            if len(columns) == 0
-            else sql_.format(fields=columns[0].value, table_name=table_name)
-        )
+        if columns := self.groups_dict.get("columns"):
+            table_name = self._simple.table_name
+            sql_ = "select {fields} from {table_name}"
+            return sql_.format(fields=columns[0].value, table_name=table_name)
+        return ""
 
     def where(self):
         sql = []
-        wheres = self.groups_dict["where"]
-        for clausare_where in wheres:
-            stmt = self[clausare_where.type](clausare_where)
-            if not sql:
-                sql.append(stmt)
-            else:
-                sql.extend((clausare_where.condition, stmt))
-        return "where" + "".join(sql)
+        if wheres := self.groups_dict.get("where"):
+            for clausare_where in wheres:
+                stmt = self[clausare_where.type](clausare_where)
+                if not sql:
+                    sql.append(stmt)
+                else:
+                    sql.extend((clausare_where.condition, stmt))
+            return "where" + "".join(sql)
+        return ""
 
     def where_operator(self, statement: Statements):
         return " {column} {operator} '{values}'".format(
@@ -91,6 +87,13 @@ class QueryCompiler:
             else ""
         )
 
+    def offset(self):
+        return (
+            f"offset {self._simple.offset}"
+            if self._simple.offset and self._simple.offset > 0
+            else ""
+        )
+
     def set_options_builder(
         self, statements: List[Statements], simple: SimpleAttributes
     ):
@@ -99,8 +102,6 @@ class QueryCompiler:
 
     async def exec(self):
         query = self.to_sql()
-        # TODO: Remove
-        print(query)
         self.reset()
         return (
             await self.client.fetch_all(query=query)

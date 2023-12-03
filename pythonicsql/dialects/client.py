@@ -13,3 +13,9 @@ class Client:
         self.database = Database(self.uri)
         self.compiler = QueryCompiler(self.database)
         self.builder = QueryBuilder(self.compiler)
+
+    async def connect(self):
+        await self.database.connect()
+
+    async def disconnect(self):
+        await self.database.disconnect()

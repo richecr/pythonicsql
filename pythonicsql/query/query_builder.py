@@ -16,12 +16,13 @@ class QueryBuilder:
         self.compiler.set_options_builder(self._statements, self._simple)
         return self.compiler.to_sql()
 
-    def select(self, columns: List[str]):
+    def select(self, columns: List[str] | None = "*"):
+        value = ", ".join(columns) if columns else "*"
         self._statements.append(
             Statements(
                 type="select",
                 grouping="columns",
-                value=", ".join(columns),
+                value=value,
             )
         )
         return self
