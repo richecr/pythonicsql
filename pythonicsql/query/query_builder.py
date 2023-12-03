@@ -34,9 +34,6 @@ class QueryBuilder:
     def from_(self, tn: str):
         return self.set_table_name(tn)
 
-    def into(self, tn: str):
-        return self.set_table_name(tn)
-
     def _where(
         self,
         type: str,
@@ -73,23 +70,27 @@ class QueryBuilder:
         return self
 
     def where_in(self, column: str, values: List):
-        self._where("where_in", column, values)
+        self._where(type="where_in", column=column, value=values, operator="in")
         return self
 
     def or_where_in(self, column: str, values: List):
-        self._where("where_in", column, values, " or")
+        self._where("where_in", column, values, " or", "in")
         return self
 
     def where_like(self, column: str, value: str):
-        self._where("where_like", column, value)
+        self._where("where_like", column, value, " and", "like")
         return self
 
     def or_where_like(self, column: str, value: str):
-        self._where("where_like", column, value, " or")
+        self._where("where_like", column, value, " or", "like")
         return self
 
     def limit(self, limit_: int):
         self._simple.limit = limit_
+        return self
+
+    def offset(self, offset: int):
+        self._simple.offset = offset
         return self
 
     async def exec(self):

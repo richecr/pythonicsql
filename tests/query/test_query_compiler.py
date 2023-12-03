@@ -163,6 +163,29 @@ class TestQueryCompiler(unittest.IsolatedAsyncioTestCase):
         sql = self.query_compiler.to_sql()
         self.assertEqual(sql, "select id, name from users where id = '1'")
 
+    def test_limit_offset_success(self):
+        self.query_compiler._statements = [
+            Statements(type="select", value="id, name", grouping="columns"),
+        ]
+        self.query_compiler._simple = SimpleAttributes(
+            table_name="users", limit=100, offset=10
+        )
+        sql = self.query_compiler.to_sql()
+        self.assertEqual(sql, "select id, name from users limit 100 offset 10")
+
+    async def test_columns_empty(self):
+        self.query_compiler._statements = [
+            Statements(
+                type="where_operator",
+                column="id",
+                value="1",
+                operator="=",
+                grouping="where",
+            ),
+        ]
+        sql = self.query_compiler.to_sql()
+        self.assertEqual(sql, "where id = '1'")
+
     async def test_exec_success(self):
         await db.execute("CREATE TABLE IF NOT EXISTS users (id int, name varchar);")
         self.query_compiler.set_options_builder(
@@ -181,16 +204,6 @@ class TestQueryCompiler(unittest.IsolatedAsyncioTestCase):
         sql = self.query_compiler.to_sql()
         await self.query_compiler.exec()
         self.assertEqual(sql, "select id, name from users where id = '1'")
-
-    def test_offset_success(self):
-        self.query_compiler._statements = [
-            Statements(type="select", value="id, name", grouping="columns"),
-        ]
-        self.query_compiler._simple = SimpleAttributes(
-            table_name="users", limit=100, offset=10
-        )
-        sql = self.query_compiler.to_sql()
-        self.assertEqual(sql, "select id, name from users limit 100 offset 10")
 
 
 if __name__ == "__main__":
