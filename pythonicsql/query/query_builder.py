@@ -1,7 +1,9 @@
 from typing import Any, List
-from pythonicsql.query.query_compiler import QueryCompiler
-from pythonicsql.query.model.simple_attributes import SimpleAttributes
+
+from pythonicsql.query.model.raw import Raw
 from pythonicsql.query.model.statement import Statements
+from pythonicsql.query.model.simple_attributes import SimpleAttributes
+from pythonicsql.query.query_compiler import QueryCompiler
 
 
 class QueryBuilder:
@@ -14,7 +16,8 @@ class QueryBuilder:
 
     def to_sql(self):
         self.compiler.set_options_builder(self._statements, self._simple)
-        return self.compiler.to_sql()
+        sql = self._simple.raw.sql if self._simple.raw else self.compiler.to_sql()
+        return sql
 
     def select(self, columns: List[str] | None = "*"):
         value = ", ".join(columns) if columns else "*"
@@ -98,6 +101,11 @@ class QueryBuilder:
         result = await self.compiler.exec()
         self.reset()
         return result
+
+    def raw(self, sql: str):
+        self._simple.is_dql = sql.lower().startswith("select")
+        self._simple.raw = Raw(sql)
+        return self
 
     def reset(self):
         self._statements = []

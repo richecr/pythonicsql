@@ -1,9 +1,9 @@
+from dataclasses import dataclass
 from typing import Any
 
-from pydantic import BaseModel
 
-
-class Statements(BaseModel):
+@dataclass
+class Statements:
     type: str
     value: Any
     grouping: str

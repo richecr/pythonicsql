@@ -34,9 +34,11 @@ class TestQueryBuilder(unittest.IsolatedAsyncioTestCase):
 
     async def test_pythonic_connect(self):
         await self.pythonicsql_sqlite.client.connect()
+        self.assertEqual(self.pythonicsql_sqlite.client.database.is_connected, True)
 
     async def test_pythonic_disconnect(self):
         await self.pythonicsql_sqlite.client.disconnect()
+        self.assertEqual(self.pythonicsql_sqlite.client.database.is_connected, False)
 
 
 if __name__ == "__main__":

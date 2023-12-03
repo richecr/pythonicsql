@@ -101,7 +101,7 @@ class QueryCompiler:
         self._simple = simple
 
     async def exec(self):
-        query = self.to_sql()
+        query = self._simple.raw.sql if self._simple.raw else self.to_sql()
         self.reset()
         return (
             await self.client.fetch_all(query=query)

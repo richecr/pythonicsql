@@ -150,14 +150,9 @@ class TestQueryBuilder(unittest.IsolatedAsyncioTestCase):
 
     async def test_clausare_exec_success(self):
         await db.execute("CREATE TABLE IF NOT EXISTS users (id int, name varchar);")
-        sttms = (
-            self.query_builder.select()
-            .from_("users")
-            .where("id", "3")
-            .or_where_like("name", "%tes%")
-            .limit(10)
-            ._statements
-        )
+        self.query_builder.select().from_("users").where("id", "3").or_where_like(
+            "name", "%tes%"
+        ).limit(10)
         sql = "select * from users where id = '3' or name like '%tes%' limit 10"
         self.assertEqual(sql, self.query_builder.to_sql())
         self.assertEqual(3, len(self.query_builder._statements))
@@ -165,6 +160,21 @@ class TestQueryBuilder(unittest.IsolatedAsyncioTestCase):
         await self.query_builder.exec()
         self.assertEqual(0, len(self.query_builder._statements))
         self.assertEqual(0, self.query_builder._simple.limit)
+
+    async def test_clausare_raw_success(self):
+        await self.query_builder.raw(
+            "CREATE TABLE IF NOT EXISTS users (id int, name varchar);"
+        ).exec()
+        sql = "select * from users where id = '3' or name like '%tes%' limit 10"
+        self.query_builder.raw(sql)
+        self.assertEqual(sql, self.query_builder.to_sql())
+        self.assertIsNotNone(self.query_builder._simple.raw)
+        self.assertEqual(0, len(self.query_builder._statements))
+        self.assertEqual(0, self.query_builder._simple.limit)
+        await self.query_builder.exec()
+        self.assertEqual(0, len(self.query_builder._statements))
+        self.assertEqual(0, self.query_builder._simple.limit)
+        self.assertIsNone(self.query_builder._simple.raw)
 
 
 if __name__ == "__main__":
