@@ -1,14 +1,14 @@
 from dataclasses import dataclass
 import ssl
-from typing import TypedDict
+from typing import NotRequired, TypedDict
 
 
 @dataclass
 class Config(TypedDict):
     uri: str
-    min_size: int
-    min_size: int
-    ssl: bool
+    min_size: NotRequired[int]
+    max_size: NotRequired[int]
+    ssl: NotRequired[bool]
 
 
 @dataclass

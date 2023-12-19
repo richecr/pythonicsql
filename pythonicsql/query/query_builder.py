@@ -19,7 +19,7 @@ class QueryBuilder:
         sql = self._simple.raw.sql if self._simple.raw else self.compiler.to_sql()
         return sql
 
-    def select(self, columns: List[str] | None = "*"):
+    def select(self, columns: List[str] | None = None):
         value = ", ".join(columns) if columns else "*"
         self._statements.append(
             Statements(

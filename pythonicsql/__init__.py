@@ -12,7 +12,7 @@ class PythonicSQL:
 
     def __init__(self, config: DatabaseConfiguration) -> None:
         self.dialect = config.get("client")
-        self.uri = config.get("config").get("uri")
+        self.uri = config["config"]["uri"]
         self.client = self._get_client()
         self.query = self._query_builder()
 
