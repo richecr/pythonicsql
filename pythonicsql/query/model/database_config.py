@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import ssl
 from typing import NotRequired, TypedDict
 
 
@@ -13,5 +12,4 @@ class Config(TypedDict):
 
 @dataclass
 class DatabaseConfiguration(TypedDict):
-    client: str
-    config: Config
+    dialect: str

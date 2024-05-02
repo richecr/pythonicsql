@@ -11,7 +11,7 @@ db = Database("sqlite:///example_test.db")
 
 class TestQueryCompiler(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
-        self.query_compiler = QueryCompiler(db)
+        self.query_compiler = QueryCompiler()
         self.query_compiler._simple = SimpleAttributes(table_name="users")
 
     def test_columns_success(self):
@@ -29,45 +29,49 @@ class TestQueryCompiler(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(sql, "select id, name from users where id = '1'")
 
     def test_clausare_where_operator_success(self):
-        self.query_compiler._statements = [
-            Statements(type="select", value="id, name", grouping="columns"),
-            Statements(
-                type="where_operator",
-                column="id",
-                value="1",
-                operator="=",
-                grouping="where",
-            ),
-            Statements(
-                type="where_in",
-                column="id",
-                value=["1", "2", "3"],
-                grouping="where",
-            ),
-        ]
+        self.query_compiler._statements = {
+            "columns": Statements(type="select", value="id, name", grouping="columns"),
+            "where": [
+                Statements(
+                    type="where_operator",
+                    column="id",
+                    value="1",
+                    operator="=",
+                    grouping="where",
+                ),
+                Statements(
+                    type="where_in",
+                    column="id",
+                    value=["1", "2", "3"],
+                    grouping="where",
+                ),
+            ],
+        }
         sql = self.query_compiler.to_sql()
         self.assertEqual(
             sql, "select id, name from users where id = '1' and id in ('1', '2', '3')"
         )
 
     def test_clausare_or_where_operator_success(self):
-        self.query_compiler._statements = [
-            Statements(type="select", value="id, name", grouping="columns"),
-            Statements(
-                type="where_in",
-                column="id",
-                value=["1", "2", "3"],
-                grouping="where",
-            ),
-            Statements(
-                type="where_operator",
-                column="id",
-                value="1",
-                operator="=",
-                condition=" or",
-                grouping="where",
-            ),
-        ]
+        self.query_compiler._statements = {
+            "columns": Statements(type="select", value="id, name", grouping="columns"),
+            "where": [
+                Statements(
+                    type="where_in",
+                    column="id",
+                    value=["1", "2", "3"],
+                    grouping="where",
+                ),
+                Statements(
+                    type="where_operator",
+                    column="id",
+                    value="1",
+                    operator="=",
+                    condition=" or",
+                    grouping="where",
+                ),
+            ],
+        }
         sql = self.query_compiler.to_sql()
         self.assertEqual(
             sql,
@@ -93,23 +97,25 @@ class TestQueryCompiler(unittest.IsolatedAsyncioTestCase):
     def _extracted_from_test_clausare_where_in_success(
         self, column, value, condition, expect
     ):
-        self.query_compiler._statements = [
-            Statements(type="select", value="*", grouping="columns"),
-            Statements(
-                type="where_operator",
-                column=column,
-                value=value,
-                operator="=",
-                grouping="where",
-            ),
-            Statements(
-                type="where_in",
-                column="id",
-                value=["1", "2", "3"],
-                condition=condition,
-                grouping="where",
-            ),
-        ]
+        self.query_compiler._statements = {
+            "columns": Statements(type="select", value="*", grouping="columns"),
+            "where": [
+                Statements(
+                    type="where_operator",
+                    column=column,
+                    value=value,
+                    operator="=",
+                    grouping="where",
+                ),
+                Statements(
+                    type="where_in",
+                    column="id",
+                    value=["1", "2", "3"],
+                    condition=condition,
+                    grouping="where",
+                ),
+            ],
+        }
         sql = self.query_compiler.to_sql()
         self.assertEqual(sql, expect)
 

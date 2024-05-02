@@ -2,7 +2,6 @@ from typing import List
 import unittest
 
 from databases.core import Database
-from pythonicsql.query.model.simple_attributes import SimpleAttributes
 from pythonicsql.query.model.statement import Statements
 from pythonicsql.query.query_builder import QueryBuilder
 
@@ -13,19 +12,19 @@ db = Database("sqlite:///example_test.db")
 
 class TestQueryBuilder(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
-        self.query_compiler = QueryCompiler(db)
+        self.query_compiler = QueryCompiler()
         self.query_builder = QueryBuilder(self.query_compiler)
 
     def test_clausare_select_params_success(self):
         sttms = self.query_builder.select(["id", "name"]).from_("users")._statements
         self._extracted_from_test_clausare_select_all_params_success(
-            sttms, "id, name", "select id, name from users"
+            sttms["columns"], "id, name", "select id, name from users"
         )
 
     def test_clausare_select_all_params_success(self):
         sttms = self.query_builder.select().from_("users")._statements
         self._extracted_from_test_clausare_select_all_params_success(
-            sttms, "*", "select * from users"
+            sttms["columns"], "*", "select * from users"
         )
 
     def _extracted_from_test_clausare_select_all_params_success(
@@ -46,7 +45,7 @@ class TestQueryBuilder(unittest.IsolatedAsyncioTestCase):
         )
         sql = "select * from users where name = 'Test' and id = '1'"
         self.assert_sttm(
-            sttms[-1], "where_operator", "where", "id", "1", "=", " and", sql
+            sttms["where"][-1], "where_operator", "where", "id", "1", "=", " and", sql
         )
 
     def test_clausare_or_where_success(self):
@@ -59,7 +58,14 @@ class TestQueryBuilder(unittest.IsolatedAsyncioTestCase):
         )
         sql = "select * from users where name = 'Test' or name = 'Test 1'"
         self.assert_sttm(
-            sttms[-1], "where_operator", "where", "name", "Test 1", "=", " or", sql
+            sttms["where"][-1],
+            "where_operator",
+            "where",
+            "name",
+            "Test 1",
+            "=",
+            " or",
+            sql,
         )
 
     def test_clausare_where_in_success(self):
@@ -72,7 +78,7 @@ class TestQueryBuilder(unittest.IsolatedAsyncioTestCase):
         )
         sql = "select * from users where id in ('1', '2') and id in ('3', '4')"
         self.assert_sttm(
-            sttms[-1], "where_in", "where", "id", ["3", "4"], "in", " and", sql
+            sttms["where"][-1], "where_in", "where", "id", ["3", "4"], "in", " and", sql
         )
 
     def test_clausare_or_where_in_success(self):
@@ -85,7 +91,7 @@ class TestQueryBuilder(unittest.IsolatedAsyncioTestCase):
         )
         sql = "select * from users where id in ('1', '2') or id in ('3', '4')"
         self.assert_sttm(
-            sttms[-1], "where_in", "where", "id", ["3", "4"], "in", " or", sql
+            sttms["where"][-1], "where_in", "where", "id", ["3", "4"], "in", " or", sql
         )
 
     def test_clausare_where_like_success(self):
@@ -98,7 +104,14 @@ class TestQueryBuilder(unittest.IsolatedAsyncioTestCase):
         )
         sql = "select * from users where id = '3' and name like '%tes%'"
         self.assert_sttm(
-            sttms[-1], "where_like", "where", "name", "%tes%", "like", " and", sql
+            sttms["where"][-1],
+            "where_like",
+            "where",
+            "name",
+            "%tes%",
+            "like",
+            " and",
+            sql,
         )
 
     def test_clausare_or_where_like_success(self):
@@ -111,7 +124,14 @@ class TestQueryBuilder(unittest.IsolatedAsyncioTestCase):
         )
         sql = "select * from users where id = '3' or name like '%tes%'"
         self.assert_sttm(
-            sttms[-1], "where_like", "where", "name", "%tes%", "like", " or", sql
+            sttms["where"][-1],
+            "where_like",
+            "where",
+            "name",
+            "%tes%",
+            "like",
+            " or",
+            sql,
         )
 
     def assert_sttm(

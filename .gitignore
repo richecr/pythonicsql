@@ -29,10 +29,11 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+.pdm-build
 
 example.db
 example_test.db
-main.py
+main*.py
 
 
 # PyInstaller
