@@ -1,7 +1,7 @@
 {
-  "python.defaultInterpreterPath": "/home/richecr/Documentos/pythonicsql/env/bin/python",
-  "ruff.lint.args": ["--config=/home/richecr/Documentos/pythonicsql/pyproject.toml"],
-  "ruff.format.args": ["--config=/home/richecr/Documentos/pythonicsql/pyproject.toml"],
+  "python.defaultInterpreterPath": "/home/richecr/.cache/pypoetry/virtualenvs/pythonicsql-fba6_RVj-py3.12/bin/python",
+  "ruff.lint.args": ["--config=/home/richecr/projects/pythonicsql/ruff.toml"],
+  "ruff.format.args": ["--config=/home/richecr/projects/pythonicsql/ruff.toml"],
   "[python]": {
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
@@ -10,5 +10,5 @@
     },
     "editor.defaultFormatter": "charliermarsh.ruff"
   },
-  "mypy.configFile": "/home/richecr/Documentos/pythonicsql/pyproject.toml",
+  "mypy.configFile": "/home/richecr/projects/pythonicsql/ruff.toml"
 }

@@ -72,7 +72,6 @@ class QueryCompiler:
         )
 
     def limit(self) -> str:
-        print("AAAAAAAA")
         return (
             f"limit {self._simple.limit}"
             if self._simple.limit and self._simple.limit > 0
