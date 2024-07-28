@@ -73,6 +73,21 @@ docs = ["Sphinx (>=5.3.0,<5.4.0)", "sphinx-rtd-theme (>=1.2.2)", "sphinxcontrib-
 test = ["flake8 (>=6.1,<7.0)", "uvloop (>=0.15.3)"]
 
 [[package]]
+name = "asyncpg-stubs"
+version = "0.29.1"
+description = "asyncpg stubs"
+optional = false
+python-versions = ">=3.8,<4.0"
+files = [
+    {file = "asyncpg_stubs-0.29.1-py3-none-any.whl", hash = "sha256:cce994d5a19394249e74ae8d252bde3c77cee0ddfc776cc708b724fdb4adebb6"},
+    {file = "asyncpg_stubs-0.29.1.tar.gz", hash = "sha256:686afcc0af3a2f3c8e393cd850e0de430e5a139ce82b2f28ef8f693ecdf918bf"},
+]
+
+[package.dependencies]
+asyncpg = ">=0.29,<0.30"
+typing-extensions = ">=4.7.0,<5.0.0"
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
@@ -320,4 +335,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "5a138d2632816fccd0767782291e2f6938a851548a38bfdccceac10499730936"
+content-hash = "4080f699f37df5e25172fceef9902c502f7083134c8fad5b95d0667ad7396d47"

@@ -1,13 +1,17 @@
 from collections import defaultdict
-from typing import Any, Dict, List, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Union
+
+if TYPE_CHECKING:
+    from pythonicsql.dialects.client import Client
 
 from pythonicsql.query.model.simple_attributes import SimpleAttributes
 from pythonicsql.query.model.statement import Statements
 
 
 class QueryCompiler:
-    __slots__ = ["_simple", "_statements", "groups_dict"]
+    __slots__ = ["_client", "_simple", "_statements", "groups_dict"]
 
+    _client: "Client"
     _simple: SimpleAttributes
     _statements: Dict[str, Union[List[Statements], Statements]]
     components: List[str] = [
@@ -22,8 +26,16 @@ class QueryCompiler:
         "offset",
     ]
 
-    def __init__(self) -> None:
+    def __init__(self, client: "Client") -> None:
+        self._client = client
         self.groups_dict: dict[str, List[Statements]] = defaultdict(list)
+
+    async def exec(self) -> List[Any] | Iterable[Any] | str:
+        query = self._simple.raw.sql if self._simple.raw else self.to_sql()
+        self.reset()
+        if self._simple.is_dql:
+            return await self._client.fetch(sql=query)
+        return await self._client.execute(sql=query)
 
     def to_sql(self) -> str:
         first_statements = []
@@ -31,9 +43,7 @@ class QueryCompiler:
 
         # TODO: Fix self._statements does not have the limit or offset
         for component in self._statements:
-            if statement := getattr(self, component, lambda _: None)(
-                self._statements[component]
-            ):
+            if statement := getattr(self, component, lambda _: None)(self._statements[component]):
                 match component:
                     case "comments" | "columns" | "join" | "where" | "limit":
                         first_statements.append(statement)
@@ -67,15 +77,11 @@ class QueryCompiler:
         return " {column} in ({values})".format(column=statement.column, values=values)
 
     def where_like(self, statement: Statements) -> str:
-        return " {column} like '{value}'".format(
-            column=statement.column, value=statement.value
-        )
+        return " {column} like '{value}'".format(column=statement.column, value=statement.value)
 
     def limit(self) -> str:
         return (
-            f"limit {self._simple.limit}"
-            if self._simple.limit and self._simple.limit > 0
-            else ""
+            f"limit {self._simple.limit}" if self._simple.limit and self._simple.limit > 0 else ""
         )
 
     def offset(self) -> str:

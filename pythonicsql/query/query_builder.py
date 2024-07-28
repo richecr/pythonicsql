@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, Iterable, List
 
 from pythonicsql.query.model.raw import Raw
 from pythonicsql.query.model.simple_attributes import SimpleAttributes
@@ -59,9 +59,7 @@ class QueryBuilder:
         )
 
     def where(self, column: str, value: Any, operator: str = "=") -> "QueryBuilder":
-        self._where(
-            type="where_operator", column=column, value=value, operator=operator
-        )
+        self._where(type="where_operator", column=column, value=value, operator=operator)
         return self
 
     def or_where(self, column: str, value: Any, operator: str = "=") -> "QueryBuilder":
@@ -97,6 +95,12 @@ class QueryBuilder:
     def offset(self, offset: int) -> "QueryBuilder":
         self._simple.offset = offset
         return self
+
+    async def exec(self) -> List[Any] | Iterable[Any] | str:
+        self.compiler.set_options_builder(self._statements, self._simple)
+        result = await self.compiler.exec()
+        self.reset()
+        return result
 
     def raw(self, sql: str) -> "QueryBuilder":
         self._simple.is_dql = sql.lower().startswith("select")
