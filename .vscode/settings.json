@@ -1,7 +1,4 @@
 {
-  "python.defaultInterpreterPath": "/home/richecr/.cache/pypoetry/virtualenvs/pythonicsql-fba6_RVj-py3.12/bin/python",
-  "ruff.lint.args": ["--config=/home/richecr/projects/pythonicsql/ruff.toml"],
-  "ruff.format.args": ["--config=/home/richecr/projects/pythonicsql/ruff.toml"],
   "[python]": {
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
@@ -9,6 +6,5 @@
       "source.organizeImports": "explicit"
     },
     "editor.defaultFormatter": "charliermarsh.ruff"
-  },
-  "mypy.configFile": "/home/richecr/projects/pythonicsql/ruff.toml"
+  }
 }
